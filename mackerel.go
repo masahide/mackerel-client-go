@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -54,8 +55,22 @@ func NewClientWithOptions(apikey string, rawurl string, verbose bool) (*Client, 
 	if err != nil {
 		return nil, err
 	}
-	client := &http.Client{}
-	client.Timeout = apiRequestTimeout
+	client := &http.Client{
+		Transport: &http.Transport{
+			Proxy: http.ProxyFromEnvironment,
+			DialContext: (&net.Dialer{
+				Timeout:   5 * time.Second,
+				KeepAlive: 5 * time.Second,
+				DualStack: true,
+			}).DialContext,
+			ForceAttemptHTTP2:     true,
+			MaxIdleConns:          100,
+			IdleConnTimeout:       90 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ExpectContinueTimeout: 1 * time.Second,
+		},
+		Timeout: apiRequestTimeout,
+	}
 	return &Client{
 		BaseURL:           u,
 		APIKey:            apikey,

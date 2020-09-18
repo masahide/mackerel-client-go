@@ -1,4 +1,4 @@
-module github.com/mackerelio/mackerel-client-go
+module github.com/masahide/mackerel-client-go
 
 go 1.14
 
